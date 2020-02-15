@@ -46,32 +46,19 @@ plt.ylim(0, 80)
 plt.show()
 f.close()
 
-## Assignment Stage
+from sklearn.cluster import KMeans
 
-def assignment(df, centroids):
-	for i in centroids.keys():
-		# sqrt((x1 - x2)^2 - (y1 - y2)^2)
-		df["distance_from_{}".format(i)] = (
-			np.sqrt(
-				(df['x'] - centroids[i][0] ** 2
-				+ (df['y'] - centroids[i][1] ** 2
-			))
-		))
-	centroid_distance_cols = ["distance_from_{}".format(i) for i in centroids.keys()]
-	df['closest'] = df.loc[:, centroid_distance_cols].idxmin(axis=1)
-	df['closest'] = df['closest'].map(lambda x: int(x.lstrip("distance_from_")))   #  'float' object has no attribute 'lstrip'
-	df['color'] = df['closest'].map(lambda x: colmap[x])
-	return df
+kmeans = KMeans(n_clusters=3)
+kmeans.fit(df)
 
-df = assignment(df, centroids)
-print(df.head())
+labels = kmeans.predict(df)
+centroids = kmeans.cluster_centers_
+fig = plt.figure(figsize=(5,5))
 
-fig = plt.figure(figsize=(5, 5))
-plt.scatter(df['x'], df['y'], color=df['color'], alpha = 0.5, edgecolor = 'k')
-for i in centroids.keys():
-	plt.scatter(*centroids[i], color=colmap[i])
-plt.xlim(0,80)
-plt.ylim(0,80)
-plt.show()
-
-## Next Stage
+colors = map(lambda x: colmap[x+1], labels)
+colors1 = list(colors)
+plt.scatter(df['x'], df['y'], color=colors1, alpha=0.5, edgecolor='k')
+for idx, centroid in enumerate(centroids):
+	plt.scatter(*centroid, color=colmap[idx+1])
+plt.xlim(-15,15)
+plt.ylim(-15,15)
